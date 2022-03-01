@@ -4,7 +4,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 
 import { SongController } from './song.controller';
 import { SongService } from './song.service';
-import { Song, SongSchema } from "./schema/song.schema";
+import { Song, SongSchema } from "./core/schema/song.schema";
 
 @Module({
   imports: [

@@ -2,13 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from 'mongoose';
 
-import { Song, SongDocument } from "./schema/song.schema";
-import { CreateSongDto } from "./dto/create-song.dto";
+import { Song, SongDocument } from "./core/schema/song.schema";
+import { CreateSongDto } from "./core/dto/create-song.dto";
 
 @Injectable()
 export class SongService {
 
-    constructor(@InjectModel(Song.name) private songModel: Model<SongDocument>) {}
+    private readonly songModel: Model<SongDocument>
+
+    constructor(@InjectModel(Song.name) songModel: Model<SongDocument>) {
+        this.songModel = songModel;
+    }
 
     async createSong(createSongDto: CreateSongDto): Promise<Song> {
         const createdSong = new this.songModel(createSongDto);
@@ -42,5 +46,13 @@ export class SongService {
 
     async findAll(): Promise<Song[]> {
         return this.songModel.find().exec();
+    }
+
+    async updateOne(id: string, update: { title?: string, artist?: string}): Promise<Song> {
+        return this.songModel.findByIdAndUpdate(id, update);
+    }
+
+    async deleteOne(id: string): Promise<Song> {
+        return this.songModel.findByIdAndRemove(id);
     }
 }

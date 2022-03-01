@@ -1,11 +1,11 @@
 import {
     Body,
-    Controller,
+    Controller, Delete,
     Get,
     HttpCode,
     HttpStatus,
     Param,
-    Post,
+    Post, Put,
     UploadedFile,
     UploadedFiles,
     UseInterceptors
@@ -13,8 +13,9 @@ import {
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 
 import { SongService } from "./song.service";
-import { Song } from "./schema/song.schema";
-import { SearchSongDto } from "./dto/search-song.dto";
+import { Song } from "./core/schema/song.schema";
+import { SearchSongDto } from "./core/dto/search-song.dto";
+import {EditSongDto} from "./core/dto/edit-song.dto";
 
 @Controller('song')
 export class SongController {
@@ -87,5 +88,27 @@ export class SongController {
     @HttpCode(HttpStatus.OK)
     async findAllSongs(): Promise<Song[]> {
         return await this.songService.findAll();
+    }
+
+    @Put('update')
+    @HttpCode(HttpStatus.OK)
+    async updateSong(@Body() editSongDto:EditSongDto): Promise<Song> {
+        let update;
+        if(editSongDto.artist !== 'undefined') {
+            if(editSongDto.title !== 'undefined') update = { artist: editSongDto.artist, title: editSongDto.title};
+            else update = { artist: editSongDto.artist };
+        }
+        else {
+            if (editSongDto.title !== 'undefined') update = {title: editSongDto.title};
+            else return;
+        }
+
+        return await this.songService.updateOne(editSongDto.id, update)
+    }
+
+    @Delete('delete')
+    @HttpCode(HttpStatus.OK)
+    async deleteSong(@Body() body: { id: string }): Promise<Song> {
+        return await this.songService.deleteOne(body.id);
     }
 }
