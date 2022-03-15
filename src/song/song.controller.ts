@@ -4,8 +4,7 @@ import {
     Get,
     HttpCode,
     HttpStatus,
-    Param,
-    Post, Put,
+    Patch, Post,
     UploadedFile,
     UploadedFiles,
     UseInterceptors
@@ -54,12 +53,6 @@ export class SongController {
         return songs;
     }
 
-    @Get('find/:id')
-    @HttpCode(HttpStatus.OK)
-    async findOne(@Param('id') id: string): Promise<Song> {
-        return await this.songService.findOneById(id);
-    }
-
     @Get('find/any')
     @HttpCode(HttpStatus.OK)
     async findBySearch(@Body() body: { search: string }): Promise<Song[]> {
@@ -90,7 +83,7 @@ export class SongController {
         return await this.songService.findAll();
     }
 
-    @Put('update')
+    @Patch('update')
     @HttpCode(HttpStatus.OK)
     async updateSong(@Body() editSongDto:EditSongDto): Promise<Song> {
         let update;
@@ -99,7 +92,7 @@ export class SongController {
             else update = { artist: editSongDto.artist };
         }
         else {
-            if (editSongDto.title !== 'undefined') update = {title: editSongDto.title};
+            if (editSongDto.title !== 'undefined') update = { title: editSongDto.title };
             else return;
         }
 

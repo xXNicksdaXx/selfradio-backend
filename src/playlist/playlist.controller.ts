@@ -1,9 +1,9 @@
-import {Body, Controller, HttpCode, HttpStatus, Post, Put} from '@nestjs/common';
+import {Body, Controller, HttpCode, HttpStatus, Patch, Post, Put} from '@nestjs/common';
 
 import { CreatePlaylistDto } from "./core/dto/create-playlist.dto";
 import { Playlist } from "./core/schema/playlist.schema";
 import { PlaylistService } from "./playlist.service";
-import { AddSongDto } from "./core/dto/add-song.dto";
+import { PlaylistSongsDto } from "./core/dto/playlist-songs.dto";
 
 @Controller('playlist')
 export class PlaylistController {
@@ -22,14 +22,20 @@ export class PlaylistController {
 
     @Put('add/single')
     @HttpCode(HttpStatus.OK)
-    async addSong(@Body() addSongDto: AddSongDto): Promise<Playlist> {
-        return this.playlistService.addSongToPlaylist(addSongDto.playlistId, addSongDto.songs.pop());
+    async addSong(@Body() playlistSongsDto: PlaylistSongsDto): Promise<Playlist> {
+        return this.playlistService.addSongToPlaylist(playlistSongsDto.playlistId, playlistSongsDto.songs.pop());
     }
 
     @Put('add/many')
     @HttpCode(HttpStatus.OK)
-    async addSongs(@Body() addSongDto: AddSongDto): Promise<Playlist> {
-        return this.playlistService.addSongsToPlaylist(addSongDto.playlistId, addSongDto.songs);
+    async addSongs(@Body() playlistSongsDto: PlaylistSongsDto): Promise<Playlist> {
+        return this.playlistService.addSongsToPlaylist(playlistSongsDto.playlistId, playlistSongsDto.songs);
+    }
+
+    @Patch('remove/single')
+    @HttpCode(HttpStatus.OK)
+    async removeSong(@Body() playlistSongsDto: PlaylistSongsDto): Promise<Playlist> {
+        return this.playlistService.removeFromPlaylist(playlistSongsDto.playlistId, playlistSongsDto.songs.pop());
     }
 
 

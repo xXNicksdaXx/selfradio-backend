@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 import { Song, SongDocument } from "./core/schema/song.schema";
 import { CreateSongDto } from "./core/dto/create-song.dto";
@@ -20,7 +20,7 @@ export class SongService {
     }
 
     async findOneById(id: string): Promise<Song> {
-        return this.songModel.findById(id).exec();
+        return this.songModel.findById(new Types.ObjectId(id)).exec();
     }
 
     async findByAnything(text: string): Promise<Song[]> {
@@ -41,7 +41,7 @@ export class SongService {
     }
 
     async findByTitle(title: string): Promise<Song[]> {
-        return this.songModel.find({ artist: new RegExp(title, 'i') }).exec();
+        return this.songModel.find({ title: new RegExp(title, 'i') }).exec();
     }
 
     async findAll(): Promise<Song[]> {
@@ -49,7 +49,7 @@ export class SongService {
     }
 
     async updateOne(id: string, update: { title?: string, artist?: string}): Promise<Song> {
-        return this.songModel.findByIdAndUpdate(id, update);
+        return this.songModel.findByIdAndUpdate(new Types.ObjectId(id), update);
     }
 
     async deleteOne(id: string): Promise<Song> {

@@ -1,8 +1,13 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from 'mongoose';
+import { ObjectID } from 'bson';
+import { Document, Types } from 'mongoose';
 
-@Schema()
+@Schema({ _id: true, timestamps: { createdAt: false, updatedAt: true } })
 export class Song {
+
+    @Prop({ type: Types.ObjectId, required: true, default: () => new ObjectID() })
+    _id: Types.ObjectId;
+
     @Prop({ required: true })
     title: string;
 

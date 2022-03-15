@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import {Injectable} from '@nestjs/common';
+import {InjectModel} from "@nestjs/mongoose";
+import {Model, Types} from "mongoose";
 
-import { Playlist, PlaylistDocument } from "./core/schema/playlist.schema";
-import { CreatePlaylistDto } from "./core/dto/create-playlist.dto";
+import {Playlist, PlaylistDocument} from "./core/schema/playlist.schema";
+import {CreatePlaylistDto} from "./core/dto/create-playlist.dto";
 import {Song} from "../song/core/schema/song.schema";
 
 @Injectable()
@@ -21,17 +21,24 @@ export class PlaylistService {
     }
 
     async addSongToPlaylist(playlistId: string, song: Song) {
-        const playlist = await this.playlistModel.findById(playlistId).exec();
+        const playlist = await this.playlistModel.findById(new Types.ObjectId(playlistId)).exec();
         playlist.songs.push(song);
         return playlist.save();
     }
 
     async addSongsToPlaylist(playlistId: string, songs: Song[]) {
-        const playlist = await this.playlistModel.findById(playlistId).exec();
+        const playlist = await this.playlistModel.findById(new Types.ObjectId(playlistId)).exec();
         for(const song of songs) {
             playlist.songs.push(song);
         }
         return playlist.save();
     }
 
+    async removeFromPlaylist(playlistId: string, song: Song) {
+        const playlist = await this.playlistModel.findById(new Types.ObjectId(playlistId)).exec();
+        playlist.songs = playlist.songs.filter((element: Song) => {
+            return element._id !== song._id;
+        });
+        return playlist.save();
+    }
 }
