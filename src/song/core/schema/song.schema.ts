@@ -15,7 +15,10 @@ export class Song {
     artist: string;
 
     @Prop({ required: true })
-    directory: string;
+    path: string;
+
+    @Prop({ required: true, default: false })
+    favorite: boolean;
 }
 
 export type SongDocument = Song & Document;

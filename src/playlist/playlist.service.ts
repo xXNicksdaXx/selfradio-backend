@@ -1,10 +1,12 @@
-import {Injectable} from '@nestjs/common';
-import {InjectModel} from "@nestjs/mongoose";
-import {Model, Types} from "mongoose";
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import { createReadStream, ReadStream } from "fs";
+const JSZip = require('jszip');
 
-import {Playlist, PlaylistDocument} from "./core/schema/playlist.schema";
-import {CreatePlaylistDto} from "./core/dto/create-playlist.dto";
-import {Song} from "../song/core/schema/song.schema";
+import { Playlist, PlaylistDocument } from "./core/schema/playlist.schema";
+import { CreatePlaylistDto } from "./core/dto/create-playlist.dto";
+import { Song } from "../song/core/schema/song.schema";
 
 @Injectable()
 export class PlaylistService {
@@ -48,5 +50,17 @@ export class PlaylistService {
 
     async findAll() {
         return this.playlistModel.find().exec();
+    }
+
+    zipPlaylist(name: string, songs: Song[]): ReadStream {
+        const zip = new JSZip();
+        const plZip = zip.folder(name);
+
+        for(const song of songs) {
+            const songData = createReadStream(song.path);
+            plZip.file(song._id.toString() + ".mp3", songData, {binary : true, compression : "DEFLATE"});
+        }
+
+        return zip.generateNodeStream({ type: "nodebuffer", streamFiles: true })
     }
 }

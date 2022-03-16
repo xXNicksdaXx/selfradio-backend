@@ -10,12 +10,14 @@ import {
     UseInterceptors
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
+import { createReadStream } from "fs";
+import { diskStorage } from "multer";
 
 import { SongService } from "./song.service";
 import { Song } from "./core/schema/song.schema";
 import { SearchSongDto } from "./core/dto/search-song.dto";
-import {EditSongDto} from "./core/dto/edit-song.dto";
-import {createReadStream} from "fs";
+import { EditSongDto } from "./core/dto/edit-song.dto";
+import { audioFileFilter, editFileName } from "./core/middleware/file-interceptor.middlware";
 
 @Controller('song')
 export class SongController {
@@ -28,19 +30,32 @@ export class SongController {
 
     @Post('upload/single')
     @HttpCode(HttpStatus.CREATED)
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', {
+        storage: diskStorage({
+            destination: './upload',
+            filename: editFileName
+        }),
+        fileFilter: audioFileFilter
+        })
+    )
     async uploadSong(@UploadedFile() file: Express.Multer.File): Promise<Song> {
         const metadata = file.originalname.split(" - ", 2);
         return await this.songService.createSong( {
             title: metadata[1].slice(0,-4),
             artist: metadata[0],
-            directory: file.destination + "/" + file.filename,
+            path: file.destination + "/" + file.filename,
         });
     }
 
     @Post('upload/many')
     @HttpCode(HttpStatus.CREATED)
-    @UseInterceptors(FilesInterceptor('files'))
+    @UseInterceptors(FilesInterceptor('files', 100, {
+        storage: diskStorage({
+            destination: './upload',
+            filename: editFileName
+        }),
+        fileFilter: audioFileFilter
+    }))
     async uploadSongs(@UploadedFiles() files: Array<Express.Multer.File>): Promise<Song[]> {
         let songs = [];
         for(const file of files) {
@@ -48,7 +63,7 @@ export class SongController {
             songs.push(await this.songService.createSong( {
                 title: metadata[1].slice(0,-4),
                 artist: metadata[0],
-                directory: file.destination + "/" + file.filename,
+                path: file.destination + "/" + file.filename,
             }));
         }
         return songs;
@@ -58,7 +73,7 @@ export class SongController {
     @HttpCode(HttpStatus.OK)
     async downloadSong(@Body() song: Song): Promise<StreamableFile> {
 
-        const file = createReadStream(song.directory);
+        const file = createReadStream(song.path);
         return new StreamableFile(file);
     }
 

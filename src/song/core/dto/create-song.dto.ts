@@ -14,5 +14,5 @@ export class CreateSongDto {
 
     @IsNotEmpty()
     @IsString()
-    directory: string;
+    path: string;
 }

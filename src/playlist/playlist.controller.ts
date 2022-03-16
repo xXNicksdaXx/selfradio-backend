@@ -1,6 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Put, StreamableFile } from '@nestjs/common';
-import { createReadStream, ReadStream } from "fs";
-const JSZip = require('jszip');
+
 
 import { CreatePlaylistDto } from "./core/dto/create-playlist.dto";
 import { Playlist } from "./core/schema/playlist.schema";
@@ -53,15 +52,7 @@ export class PlaylistController {
 
         const playlist = await this.playlistService.findOneById(body.id);
 
-        const zip = new JSZip();
-        const plZip = zip.folder(playlist.name);
-
-        for(const song of playlist.songs) {
-            const songData = createReadStream(song.directory);
-            plZip.file(song._id.toString() + ".mp3", songData, {binary : true, compression : "DEFLATE"});
-        }
-
-        const readStream: ReadStream = zip.generateNodeStream({ type: "nodebuffer", streamFiles: true })
+        const readStream = this.playlistService.zipPlaylist(playlist.name, playlist.songs);
 
         return new StreamableFile(readStream);
     }
