@@ -4,7 +4,7 @@ import {
     Get,
     HttpCode,
     HttpStatus,
-    Patch, Post,
+    Patch, Post, StreamableFile,
     UploadedFile,
     UploadedFiles,
     UseInterceptors
@@ -15,6 +15,7 @@ import { SongService } from "./song.service";
 import { Song } from "./core/schema/song.schema";
 import { SearchSongDto } from "./core/dto/search-song.dto";
 import {EditSongDto} from "./core/dto/edit-song.dto";
+import {createReadStream} from "fs";
 
 @Controller('song')
 export class SongController {
@@ -52,6 +53,15 @@ export class SongController {
         }
         return songs;
     }
+
+    @Get('download/single')
+    @HttpCode(HttpStatus.OK)
+    async downloadSong(@Body() song: Song): Promise<StreamableFile> {
+
+        const file = createReadStream(song.directory);
+        return new StreamableFile(file);
+    }
+
 
     @Get('find/any')
     @HttpCode(HttpStatus.OK)

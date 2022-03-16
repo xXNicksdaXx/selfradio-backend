@@ -20,6 +20,10 @@ export class PlaylistService {
         return createdPlaylist.save();
     }
 
+    async findOneById(id: string): Promise<Playlist> {
+        return this.playlistModel.findById(new Types.ObjectId(id)).exec();
+    }
+
     async addSongToPlaylist(playlistId: string, song: Song) {
         const playlist = await this.playlistModel.findById(new Types.ObjectId(playlistId)).exec();
         playlist.songs.push(song);
@@ -40,5 +44,9 @@ export class PlaylistService {
             return element._id !== song._id;
         });
         return playlist.save();
+    }
+
+    async findAll() {
+        return this.playlistModel.find().exec();
     }
 }
