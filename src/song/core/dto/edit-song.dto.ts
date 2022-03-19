@@ -1,11 +1,6 @@
-import {IsNotEmpty, IsString, MaxLength, MinLength} from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 export class EditSongDto {
-
-    @IsString()
-    @MinLength(24)
-    @MaxLength(24)
-    id: string;
 
     @IsNotEmpty()
     @IsString()
@@ -16,4 +11,9 @@ export class EditSongDto {
     @IsString()
     @MaxLength(50)
     artist?: string;
+
+    @IsNotEmpty()
+    @IsString()
+    @MaxLength(50)
+    album?: string;
 }

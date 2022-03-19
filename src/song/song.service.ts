@@ -19,20 +19,21 @@ export class SongService {
         return createdSong.save();
     }
 
-    async findOneById(id: string): Promise<Song> {
+    async findById(id: string): Promise<Song> {
         return this.songModel.findById(new Types.ObjectId(id)).exec();
     }
 
-    async findByAnything(text: string): Promise<Song[]> {
+    async findBySearch(text: string): Promise<Song[]> {
         const byArtist = await this.findByArtist(text);
         const byTitle = await this.findByTitle(text);
         return byArtist.concat(byTitle);
     }
 
-    async findByForm(artist: string, title: string): Promise<Song[]> {
+    async findByQuery(title?: string, artist?: string, album?: string): Promise<Song[]> {
         return this.songModel.find({
-            artist: new RegExp(artist, 'i'),
             title: new RegExp(title, 'i'),
+            artist: new RegExp(artist, 'i'),
+            album: new RegExp(album, 'i'),
         }).exec();
     }
 
