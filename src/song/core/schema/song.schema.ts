@@ -14,6 +14,9 @@ export class Song {
     @Prop({ required: true })
     artist: string;
 
+    @Prop({ required: false })
+    album: string;
+
     @Prop({ required: true })
     path: string;
 

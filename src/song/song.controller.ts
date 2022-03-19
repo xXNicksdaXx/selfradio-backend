@@ -5,19 +5,20 @@ import {
     HttpCode,
     HttpStatus,
     Patch, Post, StreamableFile,
-    UploadedFile,
     UploadedFiles,
     UseInterceptors
 } from '@nestjs/common';
-import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
+import { FilesInterceptor } from "@nestjs/platform-express";
 import { createReadStream } from "fs";
 import { diskStorage } from "multer";
+import mm from "music-metadata";
 
 import { SongService } from "./song.service";
 import { Song } from "./core/schema/song.schema";
 import { SearchSongDto } from "./core/dto/search-song.dto";
 import { EditSongDto } from "./core/dto/edit-song.dto";
 import { audioFileFilter, editFileName } from "./core/middleware/file-interceptor.middlware";
+
 
 @Controller('song')
 export class SongController {
@@ -28,28 +29,9 @@ export class SongController {
         this.songService = songService;
     }
 
-    @Post('upload/single')
+    @Post('upload')
     @HttpCode(HttpStatus.CREATED)
-    @UseInterceptors(FileInterceptor('file', {
-        storage: diskStorage({
-            destination: './upload',
-            filename: editFileName
-        }),
-        fileFilter: audioFileFilter
-        })
-    )
-    async uploadSong(@UploadedFile() file: Express.Multer.File): Promise<Song> {
-        const metadata = file.originalname.split(" - ", 2);
-        return await this.songService.createSong( {
-            title: metadata[1].slice(0,-4),
-            artist: metadata[0],
-            path: file.destination + "/" + file.filename,
-        });
-    }
-
-    @Post('upload/many')
-    @HttpCode(HttpStatus.CREATED)
-    @UseInterceptors(FilesInterceptor('files', 100, {
+    @UseInterceptors(FilesInterceptor('files', 311, {
         storage: diskStorage({
             destination: './upload',
             filename: editFileName
@@ -57,16 +39,27 @@ export class SongController {
         fileFilter: audioFileFilter
     }))
     async uploadSongs(@UploadedFiles() files: Array<Express.Multer.File>): Promise<Song[]> {
-        let songs = [];
+
+        const response = [];
+
         for(const file of files) {
-            const metadata = file.originalname.split(" - ", 2);
-            songs.push(await this.songService.createSong( {
-                title: metadata[1].slice(0,-4),
-                artist: metadata[0],
-                path: file.destination + "/" + file.filename,
+
+            const path = file.destination + "/" + file.filename;
+
+            //get file metadata
+            const metadata = await mm.parseStream(createReadStream(path));
+            console.log(metadata);
+
+            //create MongoDB Document
+            response.push(await this.songService.createSong( {
+                title: metadata.common.title,
+                artist: metadata.common.artist,
+                album: metadata.common.album,
+                path: path,
             }));
         }
-        return songs;
+
+        return response;
     }
 
     @Get('download/single')
