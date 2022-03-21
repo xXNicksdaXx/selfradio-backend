@@ -90,7 +90,7 @@ export class SongController {
     @HttpCode(HttpStatus.OK)
     async searchSpecifically(@Query('title') title?: string, @Query('artist') artist?: string,
                              @Query('album') album?: string): Promise<Song[]> {
-        if(title === undefined && artist === undefined && album && undefined) {
+        if(!title && !artist && !album) {
             return await this.songService.findAll();
         } else {
             return await this.songService.findByQuery(title, artist);

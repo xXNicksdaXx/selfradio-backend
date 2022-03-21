@@ -1,10 +1,15 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Put, StreamableFile } from '@nestjs/common';
-
+import {
+    Body, Controller,
+    Get, HttpCode,
+    HttpStatus, Param,
+    Patch, Post,
+    Put, StreamableFile
+} from '@nestjs/common';
 
 import { CreatePlaylistDto } from "./core/dto/create-playlist.dto";
 import { Playlist } from "./core/schema/playlist.schema";
 import { PlaylistService } from "./playlist.service";
-import { PlaylistSongsDto } from "./core/dto/playlist-songs.dto";
+import { Song } from "../song/core/schema/song.schema";
 
 
 @Controller('playlist')
@@ -22,22 +27,16 @@ export class PlaylistController {
         return this.playlistService.createPlaylist(createPlaylistDto);
     }
 
-    @Put('add/single')
+    @Put('add/:id')
     @HttpCode(HttpStatus.OK)
-    async addSong(@Body() playlistSongsDto: PlaylistSongsDto): Promise<Playlist> {
-        return this.playlistService.addSongToPlaylist(playlistSongsDto.playlistId, playlistSongsDto.songs.pop());
+    async addSongs(@Param('id') id: string, @Body() songs: Song[]): Promise<Playlist> {
+        return this.playlistService.addSongsToPlaylist(id, songs);
     }
 
-    @Put('add/many')
+    @Patch('remove/:id')
     @HttpCode(HttpStatus.OK)
-    async addSongs(@Body() playlistSongsDto: PlaylistSongsDto): Promise<Playlist> {
-        return this.playlistService.addSongsToPlaylist(playlistSongsDto.playlistId, playlistSongsDto.songs);
-    }
-
-    @Patch('remove/single')
-    @HttpCode(HttpStatus.OK)
-    async removeSong(@Body() playlistSongsDto: PlaylistSongsDto): Promise<Playlist> {
-        return this.playlistService.removeFromPlaylist(playlistSongsDto.playlistId, playlistSongsDto.songs.pop());
+    async removeSongs(@Param('id') id: string, @Body() songs: Song[]): Promise<Playlist> {
+        return this.playlistService.removeSongsFromPlaylist(id, songs);
     }
 
     @Get('find/all')
@@ -46,11 +45,15 @@ export class PlaylistController {
         return await this.playlistService.findAll();
     }
 
-    @Get('download')
+    @Get('download/:id')
     @HttpCode(HttpStatus.OK)
-    async downloadPlaylist(@Body() body: { id: string }) {
+    async downloadPlaylist(@Param('id') id: string) {
 
-        const playlist = await this.playlistService.findOneById(body.id);
+        const playlist = await this.playlistService.findOneById(id);
+
+        if(!playlist) {
+            throw Error("No playlist with id "+ id);
+        }
 
         const readStream = this.playlistService.zipPlaylist(playlist.name, playlist.songs);
 

@@ -26,12 +26,6 @@ export class PlaylistService {
         return this.playlistModel.findById(new Types.ObjectId(id)).exec();
     }
 
-    async addSongToPlaylist(playlistId: string, song: Song) {
-        const playlist = await this.playlistModel.findById(new Types.ObjectId(playlistId)).exec();
-        playlist.songs.push(song);
-        return playlist.save();
-    }
-
     async addSongsToPlaylist(playlistId: string, songs: Song[]) {
         const playlist = await this.playlistModel.findById(new Types.ObjectId(playlistId)).exec();
         for(const song of songs) {
@@ -40,11 +34,13 @@ export class PlaylistService {
         return playlist.save();
     }
 
-    async removeFromPlaylist(playlistId: string, song: Song) {
+    async removeSongsFromPlaylist(playlistId: string, songs: Song[]) {
         const playlist = await this.playlistModel.findById(new Types.ObjectId(playlistId)).exec();
-        playlist.songs = playlist.songs.filter((element: Song) => {
-            return element._id !== song._id;
-        });
+        for(const song of songs) {
+            playlist.songs = playlist.songs.filter((element: Song) => {
+                return element._id !== song._id;
+            });
+        }
         return playlist.save();
     }
 
