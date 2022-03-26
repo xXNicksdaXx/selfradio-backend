@@ -14,10 +14,10 @@ export class Song {
     @Prop({ required: true })
     artist: string;
 
-    @Prop({ required: false })
+    @Prop({ required: false , default: ''})
     album: string;
 
-    @Prop({ required: true })
+    @Prop({ required: true, unique: true })
     path: string;
 
     @Prop({ required: true, default: false })

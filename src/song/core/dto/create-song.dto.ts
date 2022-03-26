@@ -13,6 +13,7 @@ export class CreateSongDto {
     artist: string;
 
     @IsString()
+    @MaxLength(50)
     album: string;
 
     @IsNotEmpty()

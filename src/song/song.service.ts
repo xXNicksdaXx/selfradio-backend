@@ -29,7 +29,13 @@ export class SongService {
         return byArtist.concat(byTitle);
     }
 
-    async findByQuery(title?: string, artist?: string, album?: string): Promise<Song[]> {
+    async findByQuery(title: string, artist: string, album?: string): Promise<Song[]> {
+        if(!album) {
+            return this.songModel.find({
+                title: new RegExp(title, 'i'),
+                artist: new RegExp(artist, 'i'),
+            }).exec();
+        }
         return this.songModel.find({
             title: new RegExp(title, 'i'),
             artist: new RegExp(artist, 'i'),
