@@ -1,15 +1,20 @@
 import {
-    Body, Controller,
-    Delete, Get,
-    HttpCode, HttpStatus,
-    Param, Patch,
-    Post, StreamableFile,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Logger,
+    Param,
+    Patch,
+    Post,
+    StreamableFile,
     UploadedFiles,
     UseInterceptors
 } from '@nestjs/common';
 import { FilesInterceptor } from "@nestjs/platform-express";
-import { Bucket } from "@google-cloud/storage"
-import { createReadStream } from "fs";
+import { Bucket, DownloadResponse } from "@google-cloud/storage"
 import { memoryStorage } from "multer";
 import mm from "music-metadata";
 
@@ -25,11 +30,13 @@ import { FirebaseService } from "./firebase-storage/firebase.service";
 export class SongController {
 
     private readonly songService: SongService;
-    private readonly firebaseService: FirebaseService
+    private readonly firebaseService: FirebaseService;
+    private readonly logger: Logger;
 
     constructor(songService: SongService, firebaseService: FirebaseService) {
         this.songService = songService;
         this.firebaseService = firebaseService;
+        this.logger = new Logger(SongController.name);
     }
 
     @Post('upload')
@@ -40,8 +47,8 @@ export class SongController {
     }))
     async uploadSongs(@UploadedFiles() files: Array<Express.Multer.File>): Promise<Song[]> {
 
-        const songs: Song[] = [];
         const bucket: Bucket = this.firebaseService.getFirebaseBucket();
+        const songs: Song[] = [];
 
         for(const file of files) {
 
@@ -65,22 +72,21 @@ export class SongController {
                 //upload to firebase
                 const firebaseFile = bucket.file(path);
                 firebaseFile.save(contents, (error) => {
-                    if(!error) console.log("File written successfully to Firebase Storage.");
+                    if(!error) this.logger.log("File written successfully to Firebase Storage.");
                     else console.log(error);
                 })
 
+                //create MongoDB Document
                 const dto: CreateSongDto = {
                     title: metadata.common.title,
                     artist: metadata.common.artist,
                     album: metadata.common.album,
                     path: path
                 }
-
-                //create MongoDB Document
                 songs.push(await this.songService.createSong(dto));
 
             } else {
-                console.warn("This song already exists!");
+                this.logger.warn("This Song already exists in the database, no upload necessary!")
             }
         }
 
@@ -90,12 +96,20 @@ export class SongController {
     @Get('download/:id')
     @HttpCode(HttpStatus.OK)
     async download(@Param('id') id: string): Promise<StreamableFile> {
+
         const song = await this.songService.findById(id);
-        const file = createReadStream(song.path);
 
-        return new StreamableFile(file);
+        if(song) {
+            //retrieve song from firebase
+            const bucket = this.firebaseService.getFirebaseBucket();
+            const contents: DownloadResponse = await bucket.file(song.path).download();
+            this.logger.log(id + "retrieved from Firebase Cloud Storage")
+            return new StreamableFile(contents.pop());
+        } else {
+            this.logger.warn("Song with id "+id+" not found")
+            return ;
+        }
     }
-
 
     @Get('find/:id')
     @HttpCode(HttpStatus.OK)
