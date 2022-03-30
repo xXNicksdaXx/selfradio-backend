@@ -4,12 +4,3 @@ export const audioFileFilter = (req, file, callback) => {
     }
     callback(null, true);
 }
-
-export const editFileName = (req, file, callback) => {
-    const extension: string = file.originalname.split('.').pop();
-    const random = Array(8)
-        .fill(null)
-        .map(() => Math.round(Math.random() * 16).toString(16))
-        .join('');
-    callback(null, random + "." + extension);
-};

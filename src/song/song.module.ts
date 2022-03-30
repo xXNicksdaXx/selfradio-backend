@@ -5,6 +5,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { SongController } from './song.controller';
 import { SongService } from './song.service';
 import { Song, SongSchema } from "./core/schema/song.schema";
+import { FirebaseService } from './firebase-storage/firebase.service';
 
 @Module({
   imports: [
@@ -14,6 +15,6 @@ import { Song, SongSchema } from "./core/schema/song.schema";
     }),
   ],
   controllers: [SongController],
-  providers: [SongService]
+  providers: [SongService, FirebaseService]
 })
 export class SongModule {}

@@ -62,4 +62,12 @@ export class SongService {
     async deleteOne(id: string): Promise<Song> {
         return this.songModel.findByIdAndRemove(id);
     }
+
+    generateFileName(ext: string): string {
+        const random = Array(8)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+        return random + "." + ext;
+    };
 }

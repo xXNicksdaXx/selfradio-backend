@@ -27,6 +27,8 @@
     "@nestjs/mongoose": "^9.0.2",
     "@nestjs/platform-express": "^8.0.0",
     "class-validator": "^0.13.2",
+    "firebase": "^9.6.10",
+    "firebase-admin": "^10.0.2",
     "jszip": "^3.7.1",
     "mongoose": "^6.2.3",
     "music-metadata": "^7.12.2",
