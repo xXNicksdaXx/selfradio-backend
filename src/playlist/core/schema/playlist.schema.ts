@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { ObjectID } from "bson";
+import { ObjectID } from 'bson';
 import { Document, Types } from 'mongoose';
 
 import { Song, SongSchema } from "../../../song/core/schema/song.schema";

@@ -24,7 +24,7 @@ import { audioFileFilter } from "./core/middleware/file-interceptor.middlware";
 import { CreateSongDto } from "./core/dto/create-song.dto";
 import { EditSongDto } from "./core/dto/edit-song.dto";
 import { SearchSongDto } from "./core/dto/search-song.dto";
-import { FirebaseService } from "./firebase-storage/firebase.service";
+import { FirebaseService } from "../firebase-storage/firebase.service";
 
 @Controller('song')
 export class SongController {
@@ -103,7 +103,7 @@ export class SongController {
             //retrieve song from firebase
             const bucket = this.firebaseService.getFirebaseBucket();
             const contents: DownloadResponse = await bucket.file(song.path).download();
-            this.logger.log(id + "retrieved from Firebase Cloud Storage")
+            this.logger.log(id + " retrieved from Firebase Cloud Storage")
             return new StreamableFile(contents.pop());
         } else {
             this.logger.warn("Song with id "+id+" not found")

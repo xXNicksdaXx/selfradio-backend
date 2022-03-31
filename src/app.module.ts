@@ -15,13 +15,13 @@ import { PlaylistModule } from './playlist/playlist.module';
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         uri: configService.get<string>('MONGO_URI')
       }),
-      inject: [ConfigService]
     }),
     PlaylistModule,
-    SongModule,
+    SongModule
   ],
   controllers: [AppController],
   providers: [AppService],

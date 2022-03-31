@@ -1,9 +1,15 @@
 import {
-    Body, Controller,
-    Get, HttpCode,
-    HttpStatus, Param,
-    Patch, Post,
-    Put, StreamableFile
+    Body,
+    Controller,
+    Get,
+    HttpCode,
+    HttpStatus,
+    Logger,
+    Param,
+    Patch,
+    Post,
+    Put,
+    StreamableFile
 } from '@nestjs/common';
 
 import { CreatePlaylistDto } from "./core/dto/create-playlist.dto";
@@ -16,9 +22,11 @@ import { Song } from "../song/core/schema/song.schema";
 export class PlaylistController {
 
     private readonly playlistService: PlaylistService;
+    private readonly logger: Logger
 
     constructor(playlistService: PlaylistService) {
         this.playlistService = playlistService;
+        this.logger = new Logger(PlaylistController.name);
     }
 
     @Post('create')
@@ -47,17 +55,17 @@ export class PlaylistController {
 
     @Get('download/:id')
     @HttpCode(HttpStatus.OK)
-    async downloadPlaylist(@Param('id') id: string) {
+    async downloadPlaylist(@Param('id') id: string): Promise<StreamableFile> {
 
         const playlist = await this.playlistService.findOneById(id);
 
-        if(!playlist) {
-            throw Error("No playlist with id "+ id);
+        if(playlist) {
+            const zip = await this.playlistService.downloadPlaylist(playlist.name, playlist.songs);
+            return new StreamableFile(zip);
+        } else {
+            this.logger.warn("Playlist with id "+id+" not found")
+            return ;
         }
-
-        const readStream = this.playlistService.zipPlaylist(playlist.name, playlist.songs);
-
-        return new StreamableFile(readStream);
     }
 
 }
