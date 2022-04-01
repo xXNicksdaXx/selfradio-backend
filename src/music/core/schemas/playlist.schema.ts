@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { ObjectID } from 'bson';
 import { Document, Types } from 'mongoose';
 
-import { Song, SongSchema } from "../../../song/core/schema/song.schema";
+import { Song, SongSchema } from "./song.schema";
 
 @Schema({ _id: true, timestamps: { createdAt: false, updatedAt: true } })
 export class Playlist {
@@ -19,8 +19,6 @@ export class Playlist {
     @Prop([{ type: SongSchema }] )
     songs: Song[];
 
-    // @Prop()
-    // cover: string;
 }
 
 export type PlaylistDocument = Playlist & Document;

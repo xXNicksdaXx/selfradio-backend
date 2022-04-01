@@ -5,14 +5,13 @@ export class EditSongDto {
     @IsNotEmpty()
     @IsString()
     @MaxLength(50)
-    title?: string;
+    title: string;
 
     @IsNotEmpty()
     @IsString()
     @MaxLength(50)
-    artist?: string;
+    artist: string;
 
-    @IsNotEmpty()
     @IsString()
     @MaxLength(50)
     album?: string;

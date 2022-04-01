@@ -17,7 +17,7 @@ export class Song {
     @Prop({ required: false , default: ''})
     album: string;
 
-    @Prop({ required: true, unique: true })
+    @Prop({ required: true })
     path: string;
 
     @Prop({ required: true, default: false })

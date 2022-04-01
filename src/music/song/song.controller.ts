@@ -19,12 +19,12 @@ import { memoryStorage } from "multer";
 import mm from "music-metadata";
 
 import { SongService } from "./song.service";
-import { Song } from "./core/schema/song.schema";
-import { audioFileFilter } from "./core/middleware/file-interceptor.middlware";
-import { CreateSongDto } from "./core/dto/create-song.dto";
-import { EditSongDto } from "./core/dto/edit-song.dto";
-import { SearchSongDto } from "./core/dto/search-song.dto";
-import { FirebaseService } from "../firebase-storage/firebase.service";
+import { FirebaseService } from "../../firebase-storage/firebase.service";
+import { audioFileFilter } from "../core/filter/file-interceptor.filter";
+import { Song } from "../core/schemas/song.schema";
+import { CreateSongDto } from "../core/dtos/create-song.dto";
+import { SearchSongDto } from "../core/dtos/search-song.dto";
+import { EditSongDto } from "../core/dtos/edit-song.dto";
 
 @Controller('song')
 export class SongController {
@@ -54,15 +54,15 @@ export class SongController {
 
             //get file metadata
             const contents = file.buffer;
-            const metadata = await mm.parseBuffer(contents);
+            const metadata = await mm.parseBuffer(contents, 'audio/mpeg');
 
-            //check for double
-            const double = await this.songService.findByQuery(
+            //check for duplicate
+            const duplicate = await this.songService.findByQuery(
                 metadata.common.title,
                 metadata.common.artist,
                 metadata.common.album
             );
-            if (double.length === 0) {
+            if (duplicate.length === 0) {
 
                 //generate path
                 const path = this.songService.generateFileName(
@@ -139,6 +139,12 @@ export class SongController {
     @HttpCode(HttpStatus.OK)
     async updateSong(@Param('id') id: string, @Body() editSongDto:EditSongDto): Promise<Song> {
         return await this.songService.updateOne(id, editSongDto)
+    }
+
+    @Patch('favour/:id')
+    @HttpCode(HttpStatus.OK)
+    async favourSong(@Param('id') id: string, @Body() body: { favorite: boolean }): Promise<Song> {
+        return await this.songService.favourSong(id, body.favorite);
     }
 
     @Delete('delete/:id')

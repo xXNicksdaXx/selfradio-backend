@@ -2,16 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from 'mongoose';
 
-import { Song, SongDocument } from "./core/schema/song.schema";
-import { CreateSongDto } from "./core/dto/create-song.dto";
+import { PlaylistService } from "../playlist/playlist.service";
+import { Song, SongDocument } from "../core/schemas/song.schema";
+import { CreateSongDto } from "../core/dtos/create-song.dto";
+import { EditSongDto } from "../core/dtos/edit-song.dto";
 
 @Injectable()
 export class SongService {
 
     private readonly songModel: Model<SongDocument>
+    private readonly playlistService: PlaylistService
 
-    constructor(@InjectModel(Song.name) songModel: Model<SongDocument>) {
+    constructor(
+        @InjectModel(Song.name) songModel: Model<SongDocument>,
+        playlistService: PlaylistService
+    ) {
         this.songModel = songModel;
+        this.playlistService = playlistService;
     }
 
     async createSong(createSongDto: CreateSongDto): Promise<Song> {
@@ -55,8 +62,37 @@ export class SongService {
         return this.songModel.find().exec();
     }
 
-    async updateOne(id: string, update: { title?: string, artist?: string}): Promise<Song> {
-        return this.songModel.findByIdAndUpdate(new Types.ObjectId(id), update);
+    async updateOne(id: string, editSongDto: EditSongDto): Promise<Song> {
+
+        return this.songModel.findByIdAndUpdate(
+            new Types.ObjectId(id),
+            editSongDto,
+            { new: true }
+        ).exec();
+
+    }
+
+    async favourSong(id: string, favorite: boolean): Promise<Song> {
+
+        const song: Song = await this.songModel.findByIdAndUpdate(
+            new Types.ObjectId(id),
+            { favorite: favorite },
+            { new: true }
+        ).exec();
+
+        if(!song) {
+            return ;
+        }
+
+        //add or remove song from 'Favorites' playlist
+        const favorites = await this.playlistService.findFavoritePlaylist();
+        if (favorite) {
+            await this.playlistService.addSongsToPlaylist(favorites._id.toString(), [song])
+        } else {
+            await this.playlistService.removeSongsFromPlaylist(favorites._id.toString(), [song]);
+        }
+
+        return song;
     }
 
     async deleteOne(id: string): Promise<Song> {

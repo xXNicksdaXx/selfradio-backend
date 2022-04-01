@@ -12,10 +12,10 @@ import {
     StreamableFile
 } from '@nestjs/common';
 
-import { CreatePlaylistDto } from "./core/dto/create-playlist.dto";
-import { Playlist } from "./core/schema/playlist.schema";
+import { CreatePlaylistDto } from "../core/dtos/create-playlist.dto";
+import { Playlist } from "../core/schemas/playlist.schema";
 import { PlaylistService } from "./playlist.service";
-import { Song } from "../song/core/schema/song.schema";
+import { Song } from "../core/schemas/song.schema";
 
 
 @Controller('playlist')
@@ -32,7 +32,12 @@ export class PlaylistController {
     @Post('create')
     @HttpCode(HttpStatus.CREATED)
     async createPlaylist(@Body() createPlaylistDto: CreatePlaylistDto): Promise<Playlist> {
-        return this.playlistService.createPlaylist(createPlaylistDto);
+        if(createPlaylistDto.name === "Favorites") {
+            this.logger.warn("This name is reserved for the Favorites playlist.")
+            return ;
+        } else {
+            return this.playlistService.createPlaylist(createPlaylistDto);
+        }
     }
 
     @Put('add/:id')

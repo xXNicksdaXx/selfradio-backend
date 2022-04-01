@@ -4,8 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { SongModule } from './song/song.module';
-import { PlaylistModule } from './playlist/playlist.module';
+import { MusicModule } from './music/music.module';
 
 @Module({
   imports: [
@@ -20,8 +19,7 @@ import { PlaylistModule } from './playlist/playlist.module';
         uri: configService.get<string>('MONGO_URI')
       }),
     }),
-    PlaylistModule,
-    SongModule
+    MusicModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { ReadStream } from "fs";
+import {DownloadResponse} from "@google-cloud/storage";
 const JSZip = require('jszip');
 
-import { Playlist, PlaylistDocument } from "./core/schema/playlist.schema";
-import { CreatePlaylistDto } from "./core/dto/create-playlist.dto";
-import { Song } from "../song/core/schema/song.schema";
-import { FirebaseService } from "../firebase-storage/firebase.service";
-import {DownloadResponse} from "@google-cloud/storage";
+import { Playlist, PlaylistDocument } from "../core/schemas/playlist.schema";
+import { CreatePlaylistDto } from "../core/dtos/create-playlist.dto";
+import { FirebaseService } from "../../firebase-storage/firebase.service";
+import { Song } from "../core/schemas/song.schema";
 
 
 @Injectable()
@@ -47,11 +47,27 @@ export class PlaylistService {
         return this.playlistModel.findById(new Types.ObjectId(id)).exec();
     }
 
+    async findFavoritePlaylist(): Promise<Playlist> {
+        return this.playlistModel.findOne({ name: new RegExp('Favorites') }).exec();
+    }
+
     async addSongsToPlaylist(playlistId: string, songs: Song[]): Promise<Playlist> {
         const playlist = await this.playlistModel.findById(new Types.ObjectId(playlistId)).exec();
+
         for(const song of songs) {
-            playlist.songs.push(song);
+
+            //check for duplicate
+            const index = playlist.songs.findIndex(value => (value._id.toString() === song._id.toString()))
+
+            if(index === -1) {
+                //no duplicate, just push into array
+                playlist.songs.push(song);
+            } else {
+                //duplicate, change song to new version of this song
+                playlist.songs[index] = song;
+            }
         }
+
         return playlist.save();
     }
 
