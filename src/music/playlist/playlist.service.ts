@@ -81,6 +81,21 @@ export class PlaylistService {
         return playlist.save();
     }
 
+    async updateSongInEveryPlaylist(song: Song) {
+        const playlists = await this.playlistModel.find().exec();
+
+        for(const playlist of playlists) {
+            //check for song
+            const index = playlist.songs.findIndex(value => (value._id.toString() === song._id.toString()))
+            if(index !== -1) {
+                //song in playlist -> update
+                playlist.songs[index] = song;
+                await playlist.save();
+            }
+        }
+
+    }
+
     async findAll(): Promise<Playlist[]> {
         return this.playlistModel.find().exec();
     }

@@ -6,6 +6,7 @@ import { PlaylistService } from "../playlist/playlist.service";
 import { Song, SongDocument } from "../core/schemas/song.schema";
 import { CreateSongDto } from "../core/dtos/create-song.dto";
 import { EditSongDto } from "../core/dtos/edit-song.dto";
+import {NoSongException} from "../core/exceptions/no-song.exception";
 
 @Injectable()
 export class SongService {
@@ -64,12 +65,19 @@ export class SongService {
 
     async updateOne(id: string, editSongDto: EditSongDto): Promise<Song> {
 
-        return this.songModel.findByIdAndUpdate(
+        const song: Song =  await this.songModel.findByIdAndUpdate(
             new Types.ObjectId(id),
             editSongDto,
             { new: true }
         ).exec();
 
+        if(!song) {
+            throw new NoSongException();
+        }
+
+        await this.playlistService.updateSongInEveryPlaylist(song);
+
+        return song;
     }
 
     async favourSong(id: string, favorite: boolean): Promise<Song> {
@@ -81,13 +89,16 @@ export class SongService {
         ).exec();
 
         if(!song) {
-            return ;
+            throw new NoSongException();
         }
+
+        //update in every playlist
+        await this.playlistService.updateSongInEveryPlaylist(song);
 
         //add or remove song from 'Favorites' playlist
         const favorites = await this.playlistService.findFavoritePlaylist();
         if (favorite) {
-            await this.playlistService.addSongsToPlaylist(favorites._id.toString(), [song])
+            await this.playlistService.addSongsToPlaylist(favorites._id.toString(), [song]);
         } else {
             await this.playlistService.removeSongsFromPlaylist(favorites._id.toString(), [song]);
         }
@@ -105,5 +116,5 @@ export class SongService {
             .map(() => Math.round(Math.random() * 16).toString(16))
             .join('');
         return random + "." + ext;
-    };
+    }
 }
