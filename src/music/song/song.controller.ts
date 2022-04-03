@@ -150,6 +150,16 @@ export class SongController {
     @Delete('delete/:id')
     @HttpCode(HttpStatus.OK)
     async deleteSong(@Param('id') id: string ): Promise<Song> {
-        return await this.songService.deleteOne(id);
+
+        //remove song from MongoDB
+        const song: Song = await this.songService.deleteOne(id);
+
+        //delete from Firebase
+        const bucket = this.firebaseService.getFirebaseBucket();
+        await bucket.file(song.path).delete();
+        this.logger.log(id + " deleted from Firebase Cloud Storage")
+
+        return song;
+
     }
 }

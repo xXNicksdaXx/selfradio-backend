@@ -75,6 +75,7 @@ export class SongService {
             throw new NoSongException();
         }
 
+        //update in every playlist
         await this.playlistService.updateSongInEveryPlaylist(song);
 
         return song;
@@ -107,7 +108,18 @@ export class SongService {
     }
 
     async deleteOne(id: string): Promise<Song> {
-        return this.songModel.findByIdAndRemove(id);
+
+        const song: Song = await this.songModel.findByIdAndRemove(new Types.ObjectId(id));
+
+        if(!song) {
+            throw new NoSongException();
+        }
+
+        //remove from every playlist
+        await this.playlistService.removeSongFromEveryPlaylist(song);
+
+        return song;
+
     }
 
     generateFileName(ext: string): string {
