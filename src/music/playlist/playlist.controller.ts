@@ -15,6 +15,7 @@ import {
 import { CreatePlaylistDto } from "../core/dtos/create-playlist.dto";
 import { Playlist } from "../core/schemas/playlist.schema";
 import { PlaylistService } from "./playlist.service";
+import { EditPlaylistDto } from "../core/dtos/edit-playlist.dto";
 import { Song } from "../core/schemas/song.schema";
 
 
@@ -40,6 +41,12 @@ export class PlaylistController {
         }
     }
 
+    @Patch('update/:id')
+    @HttpCode(HttpStatus.OK)
+    async updatePlaylist(@Param('id') id: string, @Body() editPlaylistDto:EditPlaylistDto): Promise<Playlist> {
+        return await this.playlistService.updatePlaylist(id, editPlaylistDto);
+    }
+
     @Put('add/:id')
     @HttpCode(HttpStatus.OK)
     async addSongs(@Param('id') id: string, @Body() songs: Song[]): Promise<Playlist> {
@@ -52,10 +59,22 @@ export class PlaylistController {
         return this.playlistService.removeSongsFromPlaylist(id, songs);
     }
 
-    @Get('find/all')
+    @Get('find/:id')
+    @HttpCode(HttpStatus.OK)
+    async findPlaylistById(@Param('id') id: string): Promise<Playlist> {
+        return await this.playlistService.findOneById(id);
+    }
+
+    @Get('find')
     @HttpCode(HttpStatus.OK)
     async findAllPlaylists(): Promise<Playlist[]> {
         return await this.playlistService.findAll();
+    }
+
+    @Get('search')
+    @HttpCode(HttpStatus.OK)
+    async searchSpecifically(@Body() dto: { name: string }): Promise<Playlist[]> {
+        return await this.playlistService.findByName(dto.name);
     }
 
     @Get('download/:id')

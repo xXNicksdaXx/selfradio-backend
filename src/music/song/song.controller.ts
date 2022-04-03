@@ -129,7 +129,7 @@ export class SongController {
         return await this.songService.findBySearch(body.search);
     }
 
-    @Get('search/specific?')
+    @Get('search/specific')
     @HttpCode(HttpStatus.OK)
     async searchSpecifically(@Body() dto: SearchSongDto): Promise<Song[]> {
         return await this.songService.findByQuery(dto.title, dto.artist, dto.album);

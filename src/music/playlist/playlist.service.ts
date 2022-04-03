@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { ReadStream } from "fs";
-import {DownloadResponse} from "@google-cloud/storage";
+import { DownloadResponse } from "@google-cloud/storage";
 const JSZip = require('jszip');
 
 import { Playlist, PlaylistDocument } from "../core/schemas/playlist.schema";
 import { CreatePlaylistDto } from "../core/dtos/create-playlist.dto";
+import { EditPlaylistDto } from "../core/dtos/edit-playlist.dto";
 import { FirebaseService } from "../../firebase-storage/firebase.service";
 import { Song } from "../core/schemas/song.schema";
 
@@ -47,8 +48,20 @@ export class PlaylistService {
         return this.playlistModel.findById(new Types.ObjectId(id)).exec();
     }
 
+    async findByName(name: string): Promise<Playlist[]> {
+        return this.playlistModel.find({ name: new RegExp(name, 'i')}).exec();
+    }
+
     async findFavoritePlaylist(): Promise<Playlist> {
         return this.playlistModel.findOne({ name: new RegExp('Favorites') }).exec();
+    }
+
+    async updatePlaylist(id: string, editPlaylistDto: EditPlaylistDto): Promise<Playlist> {
+        return this.playlistModel.findByIdAndUpdate(
+            new Types.ObjectId(id),
+            editPlaylistDto,
+            { new: true }
+        ).exec();
     }
 
     async addSongsToPlaylist(playlistId: string, songs: Song[]): Promise<Playlist> {
