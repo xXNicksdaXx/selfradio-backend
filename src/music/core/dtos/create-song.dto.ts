@@ -7,10 +7,12 @@ export class CreateSongDto {
     @MaxLength(50)
     title: string;
 
-    @IsNotEmpty()
-    @IsString()
-    @MaxLength(50)
-    artist: string;
+    @IsNotEmpty({ each: true })
+    @IsString({ each: true })
+    @MaxLength(50, {
+        each: true,
+    })
+    artist: string[];
 
     @IsString()
     @MaxLength(50)

@@ -31,7 +31,7 @@ export class PlaylistController {
     }
 
     @Post('create')
-    @HttpCode(HttpStatus.CREATED)
+    @HttpCode(HttpStatus.OK)
     async createPlaylist(@Body() createPlaylistDto: CreatePlaylistDto): Promise<Playlist> {
         if(createPlaylistDto.name === "Favorites") {
             this.logger.warn("This name is reserved for the Favorites playlist.")

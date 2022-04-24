@@ -12,7 +12,7 @@ export class Song {
     title: string;
 
     @Prop({ required: true })
-    artist: string;
+    artist: string[];
 
     @Prop({ required: false , default: ''})
     album: string;

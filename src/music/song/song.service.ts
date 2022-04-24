@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from 'mongoose';
+const ID3Writer = require('browser-id3-writer');
 
 import { PlaylistService } from "../playlist/playlist.service";
 import { Song, SongDocument } from "../core/schemas/song.schema";
 import { CreateSongDto } from "../core/dtos/create-song.dto";
 import { EditSongDto } from "../core/dtos/edit-song.dto";
-import {NoSongException} from "../core/exceptions/no-song.exception";
+import { NoSongException } from "../core/exceptions/no-song.exception";
 
 @Injectable()
 export class SongService {
@@ -128,5 +129,15 @@ export class SongService {
             .map(() => Math.round(Math.random() * 16).toString(16))
             .join('');
         return random + "." + ext;
+    }
+
+    changeMetadataInFile(buffer: Buffer, song:Song): Buffer {
+        const writer = new ID3Writer(buffer);
+        writer.setFrame('TIT2', song.title)
+            .setFrame('TPE1', song.artist)
+            .setFrame('TPE2', song.artist.join(', '))
+            .setFrame('TALB', song.album)
+        writer.addTag()
+        return Buffer.from(writer.arrayBuffer);
     }
 }

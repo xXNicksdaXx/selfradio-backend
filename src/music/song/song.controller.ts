@@ -17,7 +17,6 @@ import { FilesInterceptor } from "@nestjs/platform-express";
 import { Bucket, DownloadResponse } from "@google-cloud/storage"
 import { memoryStorage } from "multer";
 import mm from "music-metadata";
-const ID3Writer = require('browser-id3-writer');
 
 import { SongService } from "./song.service";
 import { FirebaseService } from "../../firebase-storage/firebase.service";
@@ -41,7 +40,7 @@ export class SongController {
     }
 
     @Post('upload')
-    @HttpCode(HttpStatus.CREATED)
+    @HttpCode(HttpStatus.OK)
     @UseInterceptors(FilesInterceptor('files', 17, {
         storage: memoryStorage(),
         fileFilter: audioFileFilter,
@@ -80,7 +79,7 @@ export class SongController {
                 //create MongoDB Document
                 const dto: CreateSongDto = {
                     title: metadata.common.title,
-                    artist: metadata.common.artist,
+                    artist: [metadata.common.artist],
                     album: metadata.common.album,
                     path: path
                 }
@@ -146,12 +145,9 @@ export class SongController {
         //change metadata in mp3 file
         const bucket = this.firebaseService.getFirebaseBucket();
         const contents: DownloadResponse = await bucket.file(song.path).download();
-        const writer = new ID3Writer(contents.pop());
-        writer.setFrame('TIT2', song.title)
-            .setFrame('TPE2', song.artist)
-            .setFrame('TALB', song.album)
-        writer.addTag()
-        const buffer = Buffer.from(writer.arrayBuffer);
+
+        const buffer = this.songService.changeMetadataInFile(contents.pop(), song);
+
         bucket.file(song.path).save(buffer, (error) => {
             if(!error) this.logger.log("File written successfully to Firebase Storage.");
             else console.log(error);
