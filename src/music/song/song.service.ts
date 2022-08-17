@@ -43,17 +43,21 @@ export class SongService {
             return this.songModel.find({
                 title: new RegExp(title, 'i'),
                 artist: new RegExp(artist, 'i'),
+                feat: new RegExp(artist, 'i'),
             }).exec();
         }
         return this.songModel.find({
             title: new RegExp(title, 'i'),
             artist: new RegExp(artist, 'i'),
+            feat: new RegExp(artist, 'i'),
             album: new RegExp(album, 'i'),
         }).exec();
     }
 
     async findByArtist(artist: string): Promise<Song[]> {
-        return this.songModel.find({ artist: new RegExp(artist, 'i') }).exec();
+        const byArtist = await this.songModel.find({ artist: new RegExp(artist, 'i') }).exec();
+        const byFeat = await this.songModel.find({ feat: new RegExp(artist, 'i') }).exec();
+        return byArtist.concat(byFeat);
     }
 
     async findByTitle(title: string): Promise<Song[]> {
@@ -72,9 +76,7 @@ export class SongService {
             { new: true }
         ).exec();
 
-        if(!song) {
-            throw new NoSongException();
-        }
+        if(!song) throw new NoSongException();
 
         //update in every playlist
         await this.playlistService.updateSongInEveryPlaylist(song);

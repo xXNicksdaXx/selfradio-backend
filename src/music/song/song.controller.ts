@@ -41,7 +41,7 @@ export class SongController {
 
     @Post('upload')
     @HttpCode(HttpStatus.OK)
-    @UseInterceptors(FilesInterceptor('files', 17, {
+    @UseInterceptors(FilesInterceptor('files', 50, {
         storage: memoryStorage(),
         fileFilter: audioFileFilter,
     }))
@@ -60,8 +60,8 @@ export class SongController {
             const duplicate = await this.songService.findByQuery(
                 metadata.common.title,
                 metadata.common.artist,
-                metadata.common.album
             );
+
             if (duplicate.length === 0) {
 
                 //generate path

@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { ObjectID } from 'bson';
-import { Document, Types } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
+
+import { Playlist } from "./playlist.schema";
 
 @Schema({ _id: true, timestamps: { createdAt: false, updatedAt: true } })
 export class Song {
@@ -14,7 +16,10 @@ export class Song {
     @Prop({ required: true })
     artist: string[];
 
-    @Prop({ required: false , default: ''})
+    @Prop({ required: true , default: [] })
+    feat: string[];
+
+    @Prop({ required: false , default: '' })
     album: string;
 
     @Prop({ required: true })
@@ -22,6 +27,9 @@ export class Song {
 
     @Prop({ required: true, default: false })
     favorite: boolean;
+
+    @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Playlist' }] })
+    playlists: Playlist[];
 }
 
 export type SongDocument = Song & Document;
