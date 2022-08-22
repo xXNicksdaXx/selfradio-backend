@@ -17,16 +17,19 @@ import { Playlist } from "../core/schemas/playlist.schema";
 import { PlaylistService } from "./playlist.service";
 import { EditPlaylistDto } from "../core/dtos/edit-playlist.dto";
 import { Song } from "../core/schemas/song.schema";
+import {ManagementService} from "../management/management.service";
 
 
 @Controller('playlist')
 export class PlaylistController {
 
     private readonly playlistService: PlaylistService;
-    private readonly logger: Logger
+    private readonly managementService: ManagementService;
+    private readonly logger: Logger;
 
-    constructor(playlistService: PlaylistService) {
+    constructor(playlistService: PlaylistService, managementService: ManagementService) {
         this.playlistService = playlistService;
+        this.managementService = managementService;
         this.logger = new Logger(PlaylistController.name);
     }
 
@@ -50,13 +53,13 @@ export class PlaylistController {
     @Put('add/:id')
     @HttpCode(HttpStatus.OK)
     async addSongs(@Param('id') id: string, @Body() songs: Song[]): Promise<Playlist> {
-        return this.playlistService.addSongsToPlaylist(id, songs);
+        return this.managementService.addSongsToPlaylist(id, songs);
     }
 
     @Patch('remove/:id')
     @HttpCode(HttpStatus.OK)
     async removeSongs(@Param('id') id: string, @Body() songs: Song[]): Promise<Playlist> {
-        return this.playlistService.removeSongsFromPlaylist(id, songs);
+        return this.managementService.removeSongsFromPlaylist(id, songs);
     }
 
     @Get('find/:id')

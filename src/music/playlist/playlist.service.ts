@@ -11,7 +11,6 @@ import { EditPlaylistDto } from "../core/dtos/edit-playlist.dto";
 import { FirebaseService } from "../../firebase-storage/firebase.service";
 import { Song } from "../core/schemas/song.schema";
 
-
 @Injectable()
 export class PlaylistService {
 
@@ -48,12 +47,22 @@ export class PlaylistService {
         return this.playlistModel.findById(new Types.ObjectId(id)).exec();
     }
 
+    async findManyById(ids: Playlist[]): Promise<Playlist[]> {
+        const playlists: Playlist[] = [];
+        for(const id of ids) {
+            playlists.push(
+                await this.playlistModel.findById(id).exec()
+            );
+        }
+        return playlists;
+    }
+
     async findByName(name: string): Promise<Playlist[]> {
         return this.playlistModel.find({ name: new RegExp(name, 'i')}).exec();
     }
 
-    async findFavoritePlaylist(): Promise<Playlist> {
-        return this.playlistModel.findOne({ name: new RegExp('Favorites') }).exec();
+    async findAll(): Promise<Playlist[]> {
+        return this.playlistModel.find().exec();
     }
 
     async updatePlaylist(id: string, editPlaylistDto: EditPlaylistDto): Promise<Playlist> {
@@ -62,68 +71,6 @@ export class PlaylistService {
             editPlaylistDto,
             { new: true }
         ).exec();
-    }
-
-    async addSongsToPlaylist(playlistId: string, songs: Song[]): Promise<Playlist> {
-        const playlist = await this.playlistModel.findById(new Types.ObjectId(playlistId)).exec();
-
-        for(const song of songs) {
-
-            //check for duplicate
-            const index = playlist.songs.findIndex(value => (value._id.toString() === song._id.toString()))
-
-            if(index === -1) {
-                //no duplicate, just push into array
-                playlist.songs.push(song);
-            } else {
-                //duplicate, change song to new version of this song
-                playlist.songs[index] = song;
-            }
-        }
-
-        return playlist.save();
-    }
-
-    async removeSongsFromPlaylist(playlistId: string, songs: Song[]): Promise<Playlist> {
-        const playlist = await this.playlistModel.findById(new Types.ObjectId(playlistId)).exec();
-        for(const song of songs) {
-            playlist.songs = playlist.songs.filter((element: Song) => {
-                return element._id !== song._id;
-            });
-        }
-        return playlist.save();
-    }
-
-    async updateSongInEveryPlaylist(song: Song) {
-        const playlists = await this.playlistModel.find().exec();
-
-        for(const playlist of playlists) {
-            //check for song
-            const index = playlist.songs.findIndex(value => (value._id.toString() === song._id.toString()))
-            if(index !== -1) {
-                //song in playlist -> update
-                playlist.songs[index] = song;
-                await playlist.save();
-            }
-        }
-    }
-
-    async removeSongFromEveryPlaylist(song: Song) {
-        const playlists = await this.playlistModel.find().exec();
-
-        for(const playlist of playlists) {
-            //check for song
-            const index = playlist.songs.findIndex(value => (value._id.toString() === song._id.toString()))
-            if(index !== -1) {
-                //song in playlist -> update
-                playlist.songs.splice(index, 1);
-                await playlist.save();
-            }
-        }
-    }
-
-    async findAll(): Promise<Playlist[]> {
-        return this.playlistModel.find().exec();
     }
 
     async downloadPlaylist(name: string, songs: Song[]): Promise<ReadStream> {

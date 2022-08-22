@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Bucket } from "@google-cloud/storage"
-import { getStorage } from "firebase-admin/storage";
-
+import { Bucket } from "@google-cloud/storage";
+import { getStorage } from "firebase-admin/lib/storage";
 
 @Injectable()
 export class FirebaseService {

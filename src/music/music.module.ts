@@ -8,6 +8,7 @@ import { PlaylistController } from "./playlist/playlist.controller";
 import { SongService } from "./song/song.service";
 import { PlaylistService } from "./playlist/playlist.service";
 import { FirebaseService } from "../firebase-storage/firebase.service";
+import { ManagementService } from './management/management.service';
 
 @Module({
     imports: [
@@ -21,7 +22,8 @@ import { FirebaseService } from "../firebase-storage/firebase.service";
     providers: [
         SongService,
         PlaylistService,
-        FirebaseService
+        FirebaseService,
+        ManagementService
     ]
 })
 export class MusicModule {}

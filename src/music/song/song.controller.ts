@@ -25,16 +25,19 @@ import { Song } from "../core/schemas/song.schema";
 import { CreateSongDto } from "../core/dtos/create-song.dto";
 import { SearchSongDto } from "../core/dtos/search-song.dto";
 import { EditSongDto } from "../core/dtos/edit-song.dto";
+import { ManagementService } from "../management/management.service";
 
 @Controller('song')
 export class SongController {
 
     private readonly songService: SongService;
+    private readonly managementService: ManagementService;
     private readonly firebaseService: FirebaseService;
     private readonly logger: Logger;
 
-    constructor(songService: SongService, firebaseService: FirebaseService) {
+    constructor(songService: SongService, managementService: ManagementService, firebaseService: FirebaseService) {
         this.songService = songService;
+        this.managementService = managementService;
         this.firebaseService = firebaseService;
         this.logger = new Logger(SongController.name);
     }
@@ -140,7 +143,7 @@ export class SongController {
     async updateSong(@Param('id') id: string, @Body() editSongDto:EditSongDto): Promise<Song> {
 
         //change metadata in MongoDB
-        const song = await this.songService.updateOne(id, editSongDto)
+        const song = await this.songService.updateSong(id, editSongDto)
 
         //change metadata in mp3 file
         const bucket = this.firebaseService.getFirebaseBucket();
@@ -153,13 +156,22 @@ export class SongController {
             else console.log(error);
         });
 
+        //update song in affected playlists
+        await this.managementService.updateSongInAffectedPlaylists(song);
+
         return song;
     }
 
     @Patch('favour/:id')
     @HttpCode(HttpStatus.OK)
     async favourSong(@Param('id') id: string, @Body() body: { favorite: boolean }): Promise<Song> {
-        return await this.songService.favourSong(id, body.favorite);
+
+        const song = await this.managementService.favourSong(id, body.favorite);
+
+        //update song in affected playlists
+        await this.managementService.updateSongInAffectedPlaylists(song);
+
+        return song;
     }
 
     @Delete('delete/:id')
@@ -167,14 +179,16 @@ export class SongController {
     async deleteSong(@Param('id') id: string ): Promise<Song> {
 
         //remove song from MongoDB
-        const song: Song = await this.songService.deleteOne(id);
+        const song: Song = await this.songService.deleteSong(id);
 
         //delete from Firebase
         const bucket = this.firebaseService.getFirebaseBucket();
         await bucket.file(song.path).delete();
         this.logger.log(id + " deleted from Firebase Cloud Storage")
 
-        return song;
+        //remove song in affected playlists
+        await this.managementService.removeSongFromAffectedPlaylists(song);
 
+        return song;
     }
 }

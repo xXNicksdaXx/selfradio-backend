@@ -3,24 +3,18 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from 'mongoose';
 const ID3Writer = require('browser-id3-writer');
 
-import { PlaylistService } from "../playlist/playlist.service";
 import { Song, SongDocument } from "../core/schemas/song.schema";
 import { CreateSongDto } from "../core/dtos/create-song.dto";
-import { EditSongDto } from "../core/dtos/edit-song.dto";
-import { NoSongException } from "../core/exceptions/no-song.exception";
+import {EditSongDto} from "../core/dtos/edit-song.dto";
+import {NoSongException} from "../core/exceptions/no-song.exception";
 
 @Injectable()
 export class SongService {
 
-    private readonly songModel: Model<SongDocument>
-    private readonly playlistService: PlaylistService
+    private readonly songModel: Model<SongDocument>;
 
-    constructor(
-        @InjectModel(Song.name) songModel: Model<SongDocument>,
-        playlistService: PlaylistService
-    ) {
+    constructor(@InjectModel(Song.name) songModel: Model<SongDocument>) {
         this.songModel = songModel;
-        this.playlistService = playlistService;
     }
 
     async createSong(createSongDto: CreateSongDto): Promise<Song> {
@@ -68,7 +62,7 @@ export class SongService {
         return this.songModel.find().exec();
     }
 
-    async updateOne(id: string, editSongDto: EditSongDto): Promise<Song> {
+    async updateSong(id: string, editSongDto: EditSongDto): Promise<Song> {
 
         const song: Song =  await this.songModel.findByIdAndUpdate(
             new Types.ObjectId(id),
@@ -78,51 +72,16 @@ export class SongService {
 
         if(!song) throw new NoSongException();
 
-        //update in every playlist
-        await this.playlistService.updateSongInEveryPlaylist(song);
-
         return song;
     }
 
-    async favourSong(id: string, favorite: boolean): Promise<Song> {
-
-        const song: Song = await this.songModel.findByIdAndUpdate(
-            new Types.ObjectId(id),
-            { favorite: favorite },
-            { new: true }
-        ).exec();
-
-        if(!song) {
-            throw new NoSongException();
-        }
-
-        //update in every playlist
-        await this.playlistService.updateSongInEveryPlaylist(song);
-
-        //add or remove song from 'Favorites' playlist
-        const favorites = await this.playlistService.findFavoritePlaylist();
-        if (favorite) {
-            await this.playlistService.addSongsToPlaylist(favorites._id.toString(), [song]);
-        } else {
-            await this.playlistService.removeSongsFromPlaylist(favorites._id.toString(), [song]);
-        }
-
-        return song;
-    }
-
-    async deleteOne(id: string): Promise<Song> {
+    async deleteSong(id: string): Promise<Song> {
 
         const song: Song = await this.songModel.findByIdAndRemove(new Types.ObjectId(id));
 
-        if(!song) {
-            throw new NoSongException();
-        }
-
-        //remove from every playlist
-        await this.playlistService.removeSongFromEveryPlaylist(song);
+        if(!song) throw new NoSongException();
 
         return song;
-
     }
 
     generateFileName(ext: string): string {
@@ -136,10 +95,11 @@ export class SongService {
     changeMetadataInFile(buffer: Buffer, song:Song): Buffer {
         const writer = new ID3Writer(buffer);
         writer.setFrame('TIT2', song.title)
-            .setFrame('TPE1', song.artist)
+            .setFrame('TPE1', song.artist.concat(song.feat))
             .setFrame('TPE2', song.artist.join(', '))
-            .setFrame('TALB', song.album)
-        writer.addTag()
+            .setFrame('TPE4', song.feat.join(', '))
+            .setFrame('TALB', song.album);
+        writer.addTag();
         return Buffer.from(writer.arrayBuffer);
     }
 }
